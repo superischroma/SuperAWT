@@ -3,11 +3,14 @@ package me.superischroma.superawt;
 import me.superischroma.superawt.logger.AWTLogger;
 import org.example.awtexample.Example;
 
+import java.util.List;
 import java.util.Timer;
 
 public class SuperAWT
 {
     public static Timer TIMER;
+
+    private static List<Class<? extends AWTApplication>> APPLICATIONS;
 
     public static void main(String[] args)
     {

@@ -14,12 +14,16 @@ public abstract class AWTApplication
         return app;
     }
 
-    private AWTProperties props;
+    public AWTProperties props;
+    private boolean debug;
     private AWTFrame frame;
+
+    public AWTLogger logger;
 
     public AWTApplication()
     {
         this.props = this.getClass().getAnnotation(AWTProperties.class);
+        this.debug = props.debug();
         if (props == null)
         {
             SuperAWT.shutdown(ShutdownCode.INVALID_PROPERTIES);
@@ -31,23 +35,75 @@ public abstract class AWTApplication
             return;
         }
         app = this;
-        frame = new AWTFrame();
-        frame.setBackground(new Color(props.backgroundBlue(), props.backgroundGreen(), props.backgroundRed()));
-        this.setFrameRate(props.framesPerSecond());
+        this.frame = new AWTFrame(props);
+        String ln = props.title();
+        if (props.title().equals(""))
+            ln = AWTApplication.getApplication().getClass().getSimpleName();
+        this.logger = new AWTLogger(ln);
+        this.setFrameRate(props.fps());
         AWTLogger.DEFAULT.info("Created application.");
     }
 
+    /**
+     * Modifies the name of the application (title).
+     * @param name
+     */
     public void name(String name)
     {
         frame.setTitle(name);
+        logger.setPrefix(name);
     }
 
-    public void resizeable()
+    /**
+     * Gets the name of the application (title).
+     * @return name
+     */
+    public String getName()
     {
-        frame.setResizable(!frame.isResizable());
+        return frame.getTitle();
     }
 
-    public void setFrameRate(int max)
+    /**
+     * Modifies the application's background.
+     * @param background
+     */
+    public void background(Color background)
+    {
+        frame.background(background);
+    }
+
+    /**
+     * Creates a rectangle on the application with the specified dimensions and color.
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @param color
+     */
+    public void rect(int x, int y, int width, int height, Color color)
+    {
+        frame.rect(x, y, width, height, color);
+    }
+
+    /**
+     * Determines whether debug messages are shown in console.
+     * @param debug
+     */
+    public void debug(boolean debug)
+    {
+        this.debug = debug;
+    }
+
+    /**
+     * Checks whether debug messages are shown in console.
+     * @return debug
+     */
+    public boolean isDebugEnabled()
+    {
+        return debug;
+    }
+
+    private void setFrameRate(int max)
     {
         if (SuperAWT.TIMER != null)
             SuperAWT.TIMER.cancel();
@@ -57,12 +113,24 @@ public abstract class AWTApplication
             @Override
             public void run()
             {
+                if (props.clearOnUpdate())
+                    frame.clear();
+                update();
                 frame.render();
             }
         }, 0, 1000 / max);
     }
 
+    /**
+     * What the application runs when it gets enabled.
+     */
     public abstract void enable();
+    /**
+     * What the application runs when it gets disabled.
+     */
     public abstract void disable();
+    /**
+     * What the application runs every frame.
+     */
     public abstract void update();
 }

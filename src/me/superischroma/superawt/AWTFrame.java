@@ -1,24 +1,34 @@
 package me.superischroma.superawt;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-public class AWTFrame extends Frame
+public class AWTFrame extends JFrame
 {
     private final AWTPanel panel;
 
-    public AWTFrame()
+    public AWTFrame(AWTProperties props)
     {
         super();
-        this.panel = new AWTPanel(this);
-        this.addWindowListener(CLOSE);
+        this.panel = new AWTPanel();
         this.add(panel);
-        this.setTitle(AWTApplication.getApplication().getClass().getSimpleName());
+        if (props.title().equals(""))
+            this.setTitle(AWTApplication.getApplication().getClass().getSimpleName());
+        else
+            this.setTitle(props.title());
         this.setVisible(true);
-        this.setSize(200, 200);
+        this.setSize(props.width(), props.height());
         this.setLocationRelativeTo(null);
-        this.setResizable(true);
+        this.setResizable(props.resizeable());
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.addWindowListener(CLOSE);
+    }
+
+    public void clear()
+    {
+        panel.clear();
     }
 
     public void render()
@@ -26,12 +36,12 @@ public class AWTFrame extends Frame
         panel.repaint();
     }
 
-    public Color getBackground()
+    public void rect(int x, int y, int width, int height, Color color)
     {
-        return panel.getBackground();
+        panel.addRectangle(x, y, width, height, color);
     }
 
-    public void setBackground(Color color)
+    public void background(Color color)
     {
         panel.setBackground(color);
     }
