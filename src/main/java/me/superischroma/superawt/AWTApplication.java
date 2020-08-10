@@ -3,8 +3,10 @@ package me.superischroma.superawt;
 import me.superischroma.superawt.logger.AWTLogger;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.List;
 
 public abstract class AWTApplication
 {
@@ -17,6 +19,7 @@ public abstract class AWTApplication
     public AWTProperties props;
     private boolean debug;
     private AWTFrame frame;
+    private List<KeyPressResult> presses;
 
     public AWTLogger logger;
 
@@ -36,12 +39,31 @@ public abstract class AWTApplication
         }
         app = this;
         this.frame = new AWTFrame(props);
+        this.frame.addKeyListener(new ApplicationKeyHandler());
+        this.presses = new ArrayList<>();
         String ln = props.title();
         if (props.title().equals(""))
             ln = AWTApplication.getApplication().getClass().getSimpleName();
         this.logger = new AWTLogger(ln);
         this.setFrameRate(props.fps());
-        AWTLogger.DEFAULT.info("Created application.");
+    }
+
+    /**
+     * Adds a key press result to the application.
+     * @param result
+     */
+    public void addKeyPressResult(KeyPressResult result)
+    {
+        presses.add(result);
+    }
+
+    /**
+     * Gets all key press results for the application.
+     * @return presses
+     */
+    public List<KeyPressResult> getPresses()
+    {
+        return presses;
     }
 
     /**
@@ -86,6 +108,17 @@ public abstract class AWTApplication
     }
 
     /**
+     * Creates an image on the application with the specified dimensions.
+     * @param x
+     * @param y
+     * @param path
+     */
+    public void img(int x, int y, String path)
+    {
+        frame.img(x, y, path);
+    }
+
+    /**
      * Determines whether debug messages are shown in console.
      * @param debug
      */
@@ -115,6 +148,13 @@ public abstract class AWTApplication
             {
                 if (props.clearOnUpdate())
                     frame.clear();
+                for (KeyPressResult result : presses)
+                {
+                    if (ApplicationKeyHandler.PRESSED.contains(result.getKey()))
+                    {
+                        result.run();
+                    }
+                }
                 update();
                 frame.render();
             }

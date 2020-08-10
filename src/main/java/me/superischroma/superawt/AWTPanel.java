@@ -1,7 +1,5 @@
 package me.superischroma.superawt;
 
-import me.superischroma.superawt.logger.AWTLogger;
-
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -13,12 +11,14 @@ public class AWTPanel extends JPanel
     private static AWTApplication app = AWTApplication.getApplication();
 
     private final List<ColoredRectangle> rectangles;
+    private final List<AWTImage> images;
     private Color background;
 
     public AWTPanel()
     {
         super();
         this.rectangles = new ArrayList<>();
+        this.images = new ArrayList<>();
         this.background = Color.BLACK;
     }
 
@@ -30,6 +30,12 @@ public class AWTPanel extends JPanel
     public void clear()
     {
         rectangles.clear();
+        images.clear();
+    }
+
+    public int getObjectCount()
+    {
+        return rectangles.size() + images.size();
     }
 
     public Color getBackground()
@@ -55,6 +61,18 @@ public class AWTPanel extends JPanel
         addRectangle(new ColoredRectangle(x, y, width, height, color));
     }
 
+    public void addImage(AWTImage image)
+    {
+        app.logger.debug("Created a new image at X: " + image.getX() + ", Y: " + image.getY() + " with a width of " + image.getWidth() +
+                ", and a height of " + image.getHeight() + ".");
+        images.add(image);
+    }
+
+    public void addImage(int x, int y, String path)
+    {
+        addImage(new AWTImage(x, y, path));
+    }
+
     @Override
     public void paint(Graphics g)
     {
@@ -63,12 +81,12 @@ public class AWTPanel extends JPanel
         this.setBackground(background);
         Graphics2D g2d = (Graphics2D) g;
         Paint cP = g2d.getPaint();
-        if (rectangles.size() >= app.props.objectClearLimit())
+        if (getObjectCount() >= app.props.objectClearLimit())
         {
             if (app.props.objectClearLimit() >= 0)
             {
-                rectangles.clear();
-                app.logger.debug("All rectangles have been cleared from the application because the amount exceeded its object limit.");
+                clear();
+                app.logger.debug("All objects have been cleared from the application because the amount exceeded its object limit.");
             }
         }
         try
@@ -77,6 +95,10 @@ public class AWTPanel extends JPanel
             {
                 g2d.setPaint(rectangle.getColor());
                 g2d.fillRect((int) rectangle.getX(), (int) rectangle.getY(), (int) rectangle.getWidth(), (int) rectangle.getHeight());
+            }
+            for (AWTImage image : images)
+            {
+                g2d.drawImage(image.getImage(), image.getX(), image.getY(), null);
             }
         }
         catch (ConcurrentModificationException ex)

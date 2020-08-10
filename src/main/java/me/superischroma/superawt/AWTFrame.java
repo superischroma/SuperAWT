@@ -41,6 +41,11 @@ public class AWTFrame extends JFrame
         panel.addRectangle(x, y, width, height, color);
     }
 
+    public void img(int x, int y, String path)
+    {
+        panel.addImage(x, y, path);
+    }
+
     public void background(Color color)
     {
         panel.setBackground(color);
